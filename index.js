@@ -17,10 +17,6 @@ server.use(express.json()); // middleware - same as server.us((req, res) => {}) 
 // https://www.google.com/some/document?with_params=value
 
 /* Methods to create endpoints & handlers to get better messages instead of the default express message "Cannot GET/" in the browser */
-// server.get("/api/users", (req, res) => {
-//   res.send("hello world!");
-// });
-// Worked on Postman
 
 // Project
 // POST /api/users - Creates a user using the info sent inside the request body. Create, part of CRUD - done
@@ -64,24 +60,24 @@ server.get('/api/users', (req, res) => {
 // When the client makes a GET request to /api/users/:id
 // If the user with the specified id is not found, respond with HTTP status code 404 (Not Found)
 // return the following JSON obj: { message: "The user with the specified ID does not exist." }
-// server.get('/api/users/:id', (req, res) => {
-//   const { id } = req.params.id
+server.get('/api/users/:id', (req, res) => {
+const { id } = req.params
 
-//   db.findById(id)
-//     .then(user => {
-//       user
-//         ? res.status(200).json(user) // http://localhost:4000/api/users/:id
-//         : res
-//             .status(404)
-//             .json({
-//               errorMessage: "The user with specified ID does not exist",
-//             });
-//     })
-//     .catch(err => {
-//       res.status(500).json({ errorMessage: "The users info could not be retrieved.", success: false, err })
-//     })
-// })
-  // Postman ?
+  db.findById(id)
+    .then(user => {
+      user
+        ? res.status(200).json(user) // http://localhost:4000/api/users/:id
+        : res
+            .status(404)
+            .json({
+              errorMessage: "The user with specified ID does not exist",
+            });
+    })
+    .catch(err => {
+      res.status(500).json({ errorMessage: "The users info could not be retrieved.", success: false })
+    })
+})
+  // Worked on Postman
 
 
   // DELETE /api/users/:id - Removes the user with the specified id and returns the deleted user - done
@@ -111,8 +107,7 @@ server.delete('/api/users/:id', (req, res) => {
     .catch(err => { // catch all for the exceptions
       res.status(500).json(
         { success: false, 
-          errorMessage: "The user could not be removed",
-          err 
+          errorMessage: "The user could not be removed"
         })
     })
 })
@@ -134,24 +129,33 @@ server.delete('/api/users/:id', (req, res) => {
 // respond with HTTP status code 500
 // return the following JSON ob: { errorMessage: "The user info could not be modified" }
 
+// Combo of delete & put
 server.put('/api/users/:id', (req, res) => {
   const { id } = req.params;
   const changes = req.body;
 
-  db.update(id)
-    .then(updated => {
+  const { name, bio } = req.body
+  !name || !bio
+  ? res.status(400).json({ errorMessage: "Please provide name or bio for the user"})
+
+  :db
+    .update(id, changes) 
+    .then(updated => { // new obj called updated
       if (updated) {
-        res.status(200).end();
+        res.status(200).json(
+          changes); // if a value comes back, success message
       } else {
         res.status(404).json(
           { success: false, message: "id not found" });
       }
     })
     .catch(err => {
-      res.status(500).json({ success: false, err });
+      res.status(500).json(
+        { success: false, 
+          errorMessage: "The user info could not be modified"
+        }
+      );
     });
 })
+// Worked on Postman
 
-// If the request body is missing the name or bio property:
-// respond with HTTP status code 400 (Bad Request)
-// return the following jSON response: { errorMessage: "Please provide name and bio for the user" }
