@@ -11,7 +11,7 @@ module.exports = {
 };
 
 function find() {
-  return db('users');
+  return db('users'); // erase a letter, test it on postman, and then put that letter back
 }
 
 function findById(id) {
